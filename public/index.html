@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Key Generator</title>
+  <style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+    }
+
+    .container {
+        text-align: center;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .api-key-container {
+        margin-top: 20px;
+    }
+
+    button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        margin: 0 10px;
+    }
+
+    #apiKeyDisplay {
+        font-size: 18px;
+        font-weight: bold;
+        margin-top: 10px;
+    }
+
+    #copyApiKeyButton {
+        background-color: #4caf50;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API Key Generator</h1>
+        
+        <div class="api-key-container">
+            <button id="getApiKeysButton">Get All API Keys</button>
+            <button id="generateApiKeyButton">Generate New API Key</button>
+            <p id="apiKeyDisplay"></p>
+            <button id="copyApiKeyButton" style="display: none;">Copy API Key</button>
+        </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+          const getApiKeysButton = document.getElementById('getApiKeysButton');
+          const generateApiKeyButton = document.getElementById('generateApiKeyButton');
+          const copyApiKeyButton = document.getElementById('copyApiKeyButton');
+          const apiKeyDisplay = document.getElementById('apiKeyDisplay');
+
+          getApiKeysButton.addEventListener('click', async function () {
+              try {
+                  const apiKey = await getAllApiKeys();
+                  apiKeyDisplay.textContent = apiKey.length > 0 ? `All API Keys: ${apiKey.join(', ')}` : 'No API Keys found.';
+                  copyApiKeyButton.style.display = apiKey.length > 0 ? 'block' : 'none';
+              } catch (error) {
+                  console.error('Error getting API keys:', error.message);
+                  apiKeyDisplay.textContent = 'Error getting API Keys.';
+                  copyApiKeyButton.style.display = 'none';
+              }
+          });
+
+          generateApiKeyButton.addEventListener('click', async function () {
+              try {
+                  const apiKey = await generateAndSaveApiKey();
+                  apiKeyDisplay.textContent = `New API Key: ${apiKey}`;
+                  copyApiKeyButton.style.display = 'block';
+              } catch (error) {
+                  console.error('Error generating API key:', error.message);
+                  apiKeyDisplay.textContent = 'Error generating API Key.';
+                  copyApiKeyButton.style.display = 'none';
+              }
+          });
+
+          copyApiKeyButton.addEventListener('click', function () {
+              const textArea = document.createElement('textarea');
+              textArea.value = apiKeyDisplay.textContent.split(': ')[1];
+              document.body.appendChild(textArea);
+              textArea.select();
+              document.execCommand('copy');
+              document.body.removeChild(textArea);
+              alert('API Key copied to clipboard!');
+          });
+
+          async function getAllApiKeys() {
+              const response = await fetch('/api/apikeys');
+              const data = await response.json();
+              return data.apiKey || [];
+          }
+
+          async function generateAndSaveApiKey() {
+              const response = await fetch('/api/generate-apikey', { method: 'POST' });
+              const data = await response.json();
+              return data.apiKey;
+          }
+      });
+
+    </script>
+</body>
+</html>
